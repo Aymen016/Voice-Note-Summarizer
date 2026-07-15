@@ -19,12 +19,17 @@ from summarizer import summarize    # noqa: E402
 st.set_page_config(page_title="Voice Note Summarizer", page_icon="🎙️", layout="wide")
 
 st.title("🎙️ Voice Note Summarizer")
-st.caption("Handles Urdu-English mixed voice notes • faster-whisper + Gemini (free tier)")
+st.caption("Handles Urdu-English mixed voice notes • faster-whisper + Groq (free tier)")
 
-uploaded = st.file_uploader(
-    "Drop a voice note",
-    type=["ogg", "oga", "mp3", "m4a", "wav", "opus", "aac"],
-)
+source = st.radio("Source", ["Upload a file", "Record directly"], horizontal=True)
+
+if source == "Upload a file":
+    uploaded = st.file_uploader(
+        "Drop a voice note",
+        type=["ogg", "oga", "mp3", "m4a", "wav", "opus", "aac"],
+    )
+else:
+    uploaded = st.audio_input("Record a voice note")
 
 col_lang, _ = st.columns([1, 3])
 with col_lang:
@@ -48,7 +53,7 @@ if uploaded is not None:
         with st.spinner("Transcribing (first run downloads the whisper model)..."):
             result = transcribe(tmp_path, language=lang)
 
-        with st.spinner("Summarizing with Gemini..."):
+        with st.spinner("Summarizing with Groq..."):
             summary = summarize(result["text"])
 
         left, right = st.columns(2)

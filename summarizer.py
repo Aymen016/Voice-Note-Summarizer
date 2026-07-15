@@ -1,15 +1,16 @@
 """
 summarizer.py
-Sends a transcript to Gemini (free tier) and returns a structured summary.
+Sends a transcript to Groq (free tier) and returns a structured summary.
 Handles Urdu-English mixed transcripts - output is always in English.
 """
 
 import os
 import json
 
-import google.generativeai as genai
+import requests
 
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 PROMPT_TEMPLATE = """You are a voice note summarizer. The transcript below may mix Urdu and English (code-switched), and Urdu may appear in Urdu script or roman Urdu.
 
@@ -26,18 +27,17 @@ Transcript:
 """
 
 
-def get_client():
-    api_key = os.getenv("GEMINI_API_KEY")
+def get_api_key() -> str:
+    api_key = os.getenv("GROQ_API_KEY")
     if not api_key:
         raise RuntimeError(
-            "GEMINI_API_KEY not set.\n"
-            "Get a free key at https://aistudio.google.com/apikey then:\n"
-            "  export GEMINI_API_KEY=your_key_here   (Linux/macOS)\n"
-            "  set GEMINI_API_KEY=your_key_here      (Windows cmd)\n"
+            "GROQ_API_KEY not set.\n"
+            "Get a free key at https://console.groq.com/keys then:\n"
+            "  export GROQ_API_KEY=your_key_here   (Linux/macOS)\n"
+            "  set GROQ_API_KEY=your_key_here      (Windows cmd)\n"
             "Or put it in a .env file."
         )
-    genai.configure(api_key=api_key)
-    return genai.GenerativeModel(GEMINI_MODEL)
+    return api_key
 
 
 def summarize(transcript: str) -> dict:
@@ -53,9 +53,19 @@ def summarize(transcript: str) -> dict:
             "key_points": [],
         }
 
-    model = get_client()
-    response = model.generate_content(PROMPT_TEMPLATE.format(transcript=transcript))
-    raw = response.text.strip()
+    api_key = get_api_key()
+    response = requests.post(
+        GROQ_URL,
+        headers={"Authorization": f"Bearer {api_key}"},
+        json={
+            "model": GROQ_MODEL,
+            "messages": [{"role": "user", "content": PROMPT_TEMPLATE.format(transcript=transcript)}],
+            "temperature": 0.3,
+        },
+        timeout=60,
+    )
+    response.raise_for_status()
+    raw = response.json()["choices"][0]["message"]["content"].strip()
 
     # strip markdown fences if the model added them anyway
     if raw.startswith("```"):
