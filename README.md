@@ -1,13 +1,24 @@
+---
+title: Voice Note Summarizer
+emoji: 🎙️
+colorFrom: yellow
+colorTo: blue
+sdk: streamlit
+sdk_version: 1.35.0
+app_file: app.py
+pinned: false
+---
+
 # 🎙️ Voice Note Summarizer
 
 Turn long WhatsApp voice notes into short summaries with action items — **including Urdu-English mixed (code-switched) speech**.
 
-Built with **faster-whisper** (local, free transcription) + **Gemini free tier** (summarization). No paid APIs.
+Built with **faster-whisper** (local, free transcription) + **Groq** (summarization). No paid APIs.
 
 ## How it works
 
 ```
-voice note (.ogg) → ffmpeg (16kHz mono wav) → faster-whisper → transcript → Gemini Flash → summary + action items + tone
+voice note (.ogg) → ffmpeg (16kHz mono wav) → faster-whisper → transcript → Groq chat completion → summary + action items + tone
 ```
 
 ## Features
@@ -17,7 +28,7 @@ voice note (.ogg) → ffmpeg (16kHz mono wav) → faster-whisper → transcript 
 - ✅ Extracts action items automatically
 - 🎭 Detects tone (casual / urgent / formal ...)
 - 🖥️ CLI + Streamlit web UI
-- 💸 100% free — whisper runs locally, Gemini free tier covers ~1500 notes/day
+- 💸 100% free — whisper runs locally, Groq free tier covers generous daily usage
 
 ## Setup
 
@@ -38,14 +49,31 @@ brew install ffmpeg
 pip install -r requirements.txt
 ```
 
-**3. Get a free Gemini API key**
+**3. Get a free Groq API key**
 
-Grab one at [aistudio.google.com/apikey](https://aistudio.google.com/apikey) (no credit card), then:
+Grab one at [console.groq.com/keys](https://console.groq.com/keys) (no credit card), then:
 
 ```bash
 cp .env.example .env
 # paste your key into .env
 ```
+
+## Deploy on Hugging Face Spaces
+
+This project can run as a Streamlit Space.
+
+1. Create a new Space on Hugging Face and choose the Streamlit SDK.
+2. Push this repository to the Space.
+3. Add `GROQ_API_KEY` in the Space secrets/settings panel.
+4. Keep `packages.txt` in the repo so Hugging Face installs `ffmpeg`.
+
+Recommended Space settings:
+
+- SDK: Streamlit
+- Python version: 3.10 or newer
+- App file: `app.py`
+
+If the Space feels slow on CPU, set `WHISPER_MODEL=base` or `WHISPER_MODEL=tiny` in the Space environment variables.
 
 ## Usage
 
