@@ -19,6 +19,12 @@ MODEL_SIZE = os.getenv("WHISPER_MODEL", "small")
 
 _model = None
 
+# Urdu and Hindi are phonetically near-identical (spoken Hindustani), so even
+# with language="ur" forced, Whisper's decoder can still default to Devanagari
+# (Hindi) script. Seeding an Urdu-script prompt nudges token selection toward
+# the Perso-Arabic script instead.
+URDU_SCRIPT_PROMPT = "یہ ایک اردو صوتی پیغام ہے۔"
+
 
 def get_model() -> WhisperModel:
     """Lazy-load the whisper model (downloads on first run, then cached)."""
@@ -78,6 +84,7 @@ def transcribe(audio_path: str, language: str | None = None) -> dict:
             language=language,
             vad_filter=True,          # skip silences - big speedup on voice notes
             beam_size=5,
+            initial_prompt=URDU_SCRIPT_PROMPT if language == "ur" else None,
         )
         text = " ".join(seg.text.strip() for seg in segments).strip()
         return {
