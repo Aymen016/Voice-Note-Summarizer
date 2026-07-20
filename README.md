@@ -1,13 +1,4 @@
----
-title: Voice Note Summarizer
-emoji: 🎙️
-colorFrom: yellow
-colorTo: blue
-sdk: streamlit
-sdk_version: 1.35.0
-app_file: app.py
-pinned: false
----
+
 
 <div align="center">
 
