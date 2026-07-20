@@ -9,28 +9,66 @@ app_file: app.py
 pinned: false
 ---
 
+<div align="center">
+
 # 🎙️ Voice Note Summarizer
 
-Turn long WhatsApp voice notes into short summaries with action items — **including Urdu-English mixed (code-switched) speech**.
+**Turn long WhatsApp voice notes into short summaries with action items —
+including Urdu-English mixed (code-switched) speech.**
 
-Built with **faster-whisper** (local, free transcription) + **Groq** (summarization). No paid APIs.
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
+[![Streamlit](https://img.shields.io/badge/UI-Streamlit-ff4b4b)](https://streamlit.io/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
+</div>
+
+Built with **[faster-whisper](https://github.com/SYSTRAN/faster-whisper)** for local, free
+transcription and **[Groq](https://groq.com/)** for fast, free summarization. No paid APIs required.
+
+## Contents
+
+- [How it works](#how-it-works)
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Usage](#usage)
+- [Deploy on Hugging Face Spaces](#deploy-on-hugging-face-spaces)
+- [Project structure](#project-structure)
+- [Notes on accuracy](#notes-on-accuracy)
+- [Roadmap](#roadmap)
+- [License](#license)
 
 ## How it works
 
 ```
-voice note (.ogg) → ffmpeg (16kHz mono wav) → faster-whisper → transcript → Groq chat completion → summary + action items + tone
+voice note (.ogg/.mp3/.m4a/.wav)
+        │  ffmpeg → 16kHz mono WAV
+        ▼
+faster-whisper (local transcription)
+        │  transcript + detected language
+        ▼
+Groq chat completion (summarization)
+        ▼
+summary + key points + action items + tone
 ```
 
 ## Features
 
-- 🇵🇰 Handles Urdu-English code-switched speech (auto language detection)
-- 📝 2-3 line summary in plain English
-- ✅ Extracts action items automatically
-- 🎭 Detects tone (casual / urgent / formal ...)
-- 🖥️ CLI + Streamlit web UI
-- 💸 100% free — whisper runs locally, Groq free tier covers generous daily usage
+- 🇵🇰 Handles Urdu-English code-switched speech, with auto language detection
+- 📝 2-3 sentence summary in plain English, regardless of input language
+- 🔑 Extracts key points and action items automatically
+- 🎭 Detects tone (casual / urgent / formal / emotional / informational)
+- 🖥️ Two interfaces: a scriptable CLI and a drag-and-drop Streamlit web UI
+- 💸 Free to run — Whisper runs entirely locally, Groq's free tier covers generous daily usage
 
-## Setup
+## Prerequisites
+
+- Python 3.10+
+- [ffmpeg](https://ffmpeg.org/) available on your `PATH`
+- A free [Groq API key](https://console.groq.com/keys) (no credit card required)
+
+## Installation
 
 **1. Install ffmpeg**
 
@@ -43,41 +81,32 @@ sudo apt install ffmpeg
 brew install ffmpeg
 ```
 
-**2. Install Python deps**
+**2. Install Python dependencies**
 
 ```bash
 pip install -r requirements.txt
 ```
 
-**3. Get a free Groq API key**
-
-Grab one at [console.groq.com/keys](https://console.groq.com/keys) (no credit card), then:
+**3. Configure your API key**
 
 ```bash
 cp .env.example .env
-# paste your key into .env
+# then paste your Groq API key into .env
 ```
 
-## Deploy on Hugging Face Spaces
+## Configuration
 
-This project can run as a Streamlit Space.
+Set these in `.env` (see [`.env.example`](.env.example)):
 
-1. Create a new Space on Hugging Face and choose the Streamlit SDK.
-2. Push this repository to the Space.
-3. Add `GROQ_API_KEY` in the Space secrets/settings panel.
-4. Keep `packages.txt` in the repo so Hugging Face installs `ffmpeg`.
-
-Recommended Space settings:
-
-- SDK: Streamlit
-- Python version: 3.10 or newer
-- App file: `app.py`
-
-If the Space feels slow on CPU, set `WHISPER_MODEL=base` or `WHISPER_MODEL=tiny` in the Space environment variables.
+| Variable        | Required | Default                      | Description                                                              |
+| --------------- | :------: | ----------------------------- | -------------------------------------------------------------------------- |
+| `GROQ_API_KEY`  |    ✅    | —                              | Your Groq API key, from [console.groq.com/keys](https://console.groq.com/keys). |
+| `GROQ_MODEL`    |          | `llama-3.3-70b-versatile`     | Groq chat model used for summarization.                                    |
+| `WHISPER_MODEL` |          | `small`                       | faster-whisper model size: `tiny`, `base`, `small`, or `medium`.           |
 
 ## Usage
 
-**CLI:**
+### CLI
 
 ```bash
 python main.py voicenote.ogg
@@ -85,22 +114,58 @@ python main.py voicenote.ogg --show-transcript
 python main.py voicenote.ogg --language ur   # force Urdu if auto-detect struggles
 ```
 
-**Web UI:**
+### Web UI
 
 ```bash
 streamlit run app.py
 ```
 
-Drag-drop a voice note → get transcript + summary side by side.
+Drag and drop a voice note to see the transcript and summary side by side.
+
+## Deploy on Hugging Face Spaces
+
+This project runs out of the box as a Streamlit Space.
+
+1. Create a new Space on Hugging Face and choose the **Streamlit** SDK.
+2. Push this repository to the Space.
+3. Add `GROQ_API_KEY` under the Space's secrets/settings panel.
+4. Keep [`packages.txt`](packages.txt) in the repo so Hugging Face installs `ffmpeg`.
+
+Recommended Space settings:
+
+- SDK: Streamlit
+- Python version: 3.10 or newer
+- App file: `app.py`
+
+If the Space feels slow on CPU, set `WHISPER_MODEL=base` or `WHISPER_MODEL=tiny` in the Space's environment variables.
+
+## Project structure
+
+```
+.
+├── app.py             # Streamlit web UI
+├── main.py             # CLI entry point
+├── transcriber.py       # ffmpeg conversion + faster-whisper transcription
+├── summarizer.py         # Groq-based summarization
+├── requirements.txt       # Python dependencies
+├── packages.txt            # system packages for Hugging Face Spaces (ffmpeg)
+└── .env.example              # environment variable template
+```
 
 ## Notes on accuracy
 
-- Default whisper model is `small` — good balance on CPU. If Urdu accuracy is weak, set `WHISPER_MODEL=medium` in `.env` (slower but noticeably better).
-- First run downloads the whisper model (~460MB for small) — cached after that.
-- `vad_filter=True` skips silences, which speeds up typical voice notes a lot.
+- The default Whisper model is `small` — a good speed/accuracy balance on CPU. If Urdu
+  accuracy is weak, set `WHISPER_MODEL=medium` in `.env` (slower but noticeably better).
+- The first run downloads the Whisper model (~460MB for `small`); it's cached afterward.
+- Voice activity detection (`vad_filter=True`) skips silences, which meaningfully speeds up
+  typical voice notes.
 
 ## Roadmap
 
 - [ ] Telegram bot — forward a voice note, get a summary back
 - [ ] Batch mode — summarize a folder of notes
 - [ ] Roman Urdu normalization pass
+
+## License
+
+Released under the [MIT License](LICENSE).
