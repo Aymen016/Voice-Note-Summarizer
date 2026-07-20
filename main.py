@@ -13,7 +13,7 @@ import sys
 
 from dotenv import load_dotenv
 
-load_dotenv()  # loads GEMINI_API_KEY from .env if present
+load_dotenv()  # loads GROQ_API_KEY from .env if present
 
 from transcriber import transcribe   # noqa: E402
 from summarizer import summarize     # noqa: E402
@@ -35,7 +35,7 @@ def main():
         print(result["text"])
         print("------------------")
 
-    print("\n🤖 Summarizing with Gemini...")
+    print("\n🤖 Summarizing with Groq...")
     summary = summarize(result["text"])
 
     print("\n" + "=" * 50)
