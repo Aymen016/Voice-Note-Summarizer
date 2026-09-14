@@ -9,7 +9,7 @@ import json
 
 import requests
 
-GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 PROMPT_TEMPLATE = """You are a voice note summarizer. The transcript below may mix Urdu and English (code-switched), and Urdu may appear in Urdu script or roman Urdu.
