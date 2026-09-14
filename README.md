@@ -11,6 +11,8 @@ including Urdu-English mixed (code-switched) speech.**
 [![Streamlit](https://img.shields.io/badge/UI-Streamlit-ff4b4b)](https://streamlit.io/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
+<img width="1909" height="927" alt="Screenshot 2026-09-15 003320" src="https://github.com/user-attachments/assets/63911487-2c72-4270-a8df-5894eebd453a" />
+
 </div>
 
 Built with **[faster-whisper](https://github.com/SYSTRAN/faster-whisper)** for local, free
