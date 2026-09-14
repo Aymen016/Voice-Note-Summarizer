@@ -64,7 +64,10 @@ def summarize(transcript: str) -> dict:
         },
         timeout=60,
     )
-    response.raise_for_status()
+    if not response.ok:
+        raise RuntimeError(
+            f"Groq API error {response.status_code} for model '{GROQ_MODEL}': {response.text}"
+        )
     raw = response.json()["choices"][0]["message"]["content"].strip()
 
     # strip markdown fences if the model added them anyway
